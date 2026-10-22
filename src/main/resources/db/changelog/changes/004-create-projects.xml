@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="004-create-projects" author="unicofound">
+        <createTable tableName="projects">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_projects" nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(150)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="stage" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(32)" defaultValue="DRAFT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="funding_goal" type="NUMERIC(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="raised_amount" type="NUMERIC(19,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="projects" baseColumnNames="owner_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="fk_projects_owner" onDelete="RESTRICT"/>
+        <createIndex tableName="projects" indexName="idx_projects_owner">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="projects" indexName="idx_projects_status">
+            <column name="status"/>
+        </createIndex>
+        <sql>ALTER TABLE projects ADD CONSTRAINT chk_projects_stage CHECK (stage IN ('IDEA', 'PROTOTYPE', 'MVP', 'GROWTH'))</sql>
+        <sql>ALTER TABLE projects ADD CONSTRAINT chk_projects_status CHECK (status IN ('DRAFT', 'PUBLISHED', 'FUNDED', 'ARCHIVED'))</sql>
+        <sql>ALTER TABLE projects ADD CONSTRAINT chk_projects_funding_goal CHECK (funding_goal > 0)</sql>
+        <sql>ALTER TABLE projects ADD CONSTRAINT chk_projects_raised_amount CHECK (raised_amount >= 0)</sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="006-create-team-memberships" author="unicofound">
+        <createTable tableName="team_memberships">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_team_memberships" nullable="false"/>
+            </column>
+            <column name="project_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="equity_share" type="NUMERIC(5,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="joined_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="team_memberships" columnNames="project_id, user_id"
+                             constraintName="uk_team_memberships_project_user"/>
+        <addForeignKeyConstraint baseTableName="team_memberships" baseColumnNames="project_id"
+                                 referencedTableName="projects" referencedColumnNames="id"
+                                 constraintName="fk_team_memberships_project" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="team_memberships" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="fk_team_memberships_user" onDelete="CASCADE"/>
+        <createIndex tableName="team_memberships" indexName="idx_team_memberships_user">
+            <column name="user_id"/>
+        </createIndex>
+        <sql>ALTER TABLE team_memberships ADD CONSTRAINT chk_team_memberships_role CHECK (role IN ('FOUNDER', 'DEVELOPER', 'DESIGNER', 'MARKETER', 'ANALYST', 'OTHER'))</sql>
+        <sql>ALTER TABLE team_memberships ADD CONSTRAINT chk_team_memberships_equity CHECK (equity_share >= 0 AND equity_share &lt;= 100)</sql>
+    </changeSet>
+
+</databaseChangeLog>
