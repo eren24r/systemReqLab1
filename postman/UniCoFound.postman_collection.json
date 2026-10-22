@@ -1,0 +1,652 @@
+{
+  "info": {
+    "name": "UniCoFound API",
+    "description": "End-to-end check of the UniCoFound monolith. Run requests top to bottom: ids are stored in collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "studentId", "value": "" },
+    { "key": "student2Id", "value": "" },
+    { "key": "investorId", "value": "" },
+    { "key": "investor2Id", "value": "" },
+    { "key": "skillId", "value": "" },
+    { "key": "projectId", "value": "" },
+    { "key": "joinRequestId", "value": "" },
+    { "key": "offerId", "value": "" },
+    { "key": "offer2Id", "value": "" },
+    { "key": "suffix", "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('suffix')) {",
+          "    pm.collectionVariables.set('suffix', Date.now().toString());",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Users",
+      "item": [
+        {
+          "name": "Create student (201)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('studentId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/users",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"alice.{{suffix}}@itmo.ru\",\n  \"fullName\": \"Alice Founder\",\n  \"role\": \"STUDENT\",\n  \"bio\": \"Backend developer, wants to build an EdTech startup\"\n}" }
+          }
+        },
+        {
+          "name": "Create second student (201)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('student2Id', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/users",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"bob.{{suffix}}@itmo.ru\",\n  \"fullName\": \"Bob Designer\",\n  \"role\": \"STUDENT\",\n  \"bio\": \"UI/UX designer\"\n}" }
+          }
+        },
+        {
+          "name": "Create investor (201)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('investorId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/users",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"investor.{{suffix}}@fund.com\",\n  \"fullName\": \"Ivan Investor\",\n  \"role\": \"INVESTOR\"\n}" }
+          }
+        },
+        {
+          "name": "Create second investor (201)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('investor2Id', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/users",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"investor2.{{suffix}}@fund.com\",\n  \"fullName\": \"Olga Angel\",\n  \"role\": \"INVESTOR\"\n}" }
+          }
+        },
+        {
+          "name": "Create user - validation error (400)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('400 Bad Request with field details', () => {",
+            "    pm.response.to.have.status(400);",
+            "    pm.expect(pm.response.json().details).to.have.property('email');",
+            "});"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/users",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"not-an-email\",\n  \"fullName\": \"\",\n  \"role\": null\n}" }
+          }
+        },
+        {
+          "name": "Create user - duplicate email (409)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('409 Conflict', () => pm.response.to.have.status(409));"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/users",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"ALICE.{{suffix}}@itmo.ru\",\n  \"fullName\": \"Alice Clone\",\n  \"role\": \"STUDENT\"\n}" }
+          }
+        },
+        {
+          "name": "Get user (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK', () => pm.response.to.have.status(200));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/users/{{studentId}}" }
+        },
+        {
+          "name": "Get user - not found (404)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/users/999999" }
+        },
+        {
+          "name": "List users with X-Total-Count (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK with total count header', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.headers.has('X-Total-Count')).to.be.true;",
+            "});"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/users?page=0&size=2" }
+        },
+        {
+          "name": "List users - size above 50 (400)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/users?page=0&size=51" }
+        },
+        {
+          "name": "Update user (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK', () => pm.response.to.have.status(200));"
+          ] } }],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/users/{{studentId}}",
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Alice Founder-Smith\",\n  \"role\": \"STUDENT\",\n  \"bio\": \"Updated bio\"\n}" }
+          }
+        },
+        {
+          "name": "Add seeded skill Java to user (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK, skill attached', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.json().skills.length).to.be.above(0);",
+            "});"
+          ] } }],
+          "request": { "method": "POST", "url": "{{baseUrl}}/api/users/{{studentId}}/skills/1" }
+        },
+        {
+          "name": "Add same skill again (409)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('409 Conflict', () => pm.response.to.have.status(409));"
+          ] } }],
+          "request": { "method": "POST", "url": "{{baseUrl}}/api/users/{{studentId}}/skills/1" }
+        },
+        {
+          "name": "Remove skill from user (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK', () => pm.response.to.have.status(200));"
+          ] } }],
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/users/{{studentId}}/skills/1" }
+        }
+      ]
+    },
+    {
+      "name": "2. Skills",
+      "item": [
+        {
+          "name": "Create skill (201)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('skillId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/skills",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Kotlin {{suffix}}\",\n  \"category\": \"DEVELOPMENT\"\n}" }
+          }
+        },
+        {
+          "name": "Create skill - duplicate (409)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('409 Conflict', () => pm.response.to.have.status(409));"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/skills",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"java\",\n  \"category\": \"DEVELOPMENT\"\n}" }
+          }
+        },
+        {
+          "name": "List skills with X-Total-Count (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK', () => pm.response.to.have.status(200));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/skills?page=0&size=20" }
+        },
+        {
+          "name": "Get skill (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK', () => pm.response.to.have.status(200));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/skills/{{skillId}}" }
+        },
+        {
+          "name": "Update skill (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK', () => pm.response.to.have.status(200));"
+          ] } }],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/skills/{{skillId}}",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Kotlin Multiplatform {{suffix}}\",\n  \"category\": \"DEVELOPMENT\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Projects",
+      "item": [
+        {
+          "name": "Create project (201)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201 Created, status DRAFT', () => {",
+            "    pm.response.to.have.status(201);",
+            "    pm.expect(pm.response.json().status).to.eql('DRAFT');",
+            "});",
+            "pm.collectionVariables.set('projectId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/projects",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"StudyBuddy\",\n  \"description\": \"AI assistant that matches students into study groups\",\n  \"stage\": \"PROTOTYPE\",\n  \"fundingGoal\": 1000.00,\n  \"ownerId\": {{studentId}},\n  \"requiredSkillIds\": [1, 2, {{skillId}}]\n}" }
+          }
+        },
+        {
+          "name": "Create project by investor (422)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/projects",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Investor project\",\n  \"description\": \"Should fail\",\n  \"stage\": \"IDEA\",\n  \"fundingGoal\": 100,\n  \"ownerId\": {{investorId}}\n}" }
+          }
+        },
+        {
+          "name": "Create project - validation error (400)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/projects",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"ab\",\n  \"description\": \"\",\n  \"stage\": \"IDEA\",\n  \"fundingGoal\": -5,\n  \"ownerId\": {{studentId}}\n}" }
+          }
+        },
+        {
+          "name": "Get project (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK', () => pm.response.to.have.status(200));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/projects/{{projectId}}" }
+        },
+        {
+          "name": "Project feed - infinite scroll (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK with hasNext and no total count', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.json()).to.have.property('hasNext');",
+            "    pm.expect(pm.response.headers.has('X-Total-Count')).to.be.false;",
+            "});"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/projects?page=0&size=5" }
+        },
+        {
+          "name": "Publish project (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK, status PUBLISHED', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.json().status).to.eql('PUBLISHED');",
+            "});"
+          ] } }],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"StudyBuddy\",\n  \"description\": \"AI assistant that matches students into study groups\",\n  \"stage\": \"MVP\",\n  \"status\": \"PUBLISHED\",\n  \"fundingGoal\": 1000.00,\n  \"requiredSkillIds\": [1, 2]\n}" }
+          }
+        },
+        {
+          "name": "Set FUNDED manually (422)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+          ] } }],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"StudyBuddy\",\n  \"description\": \"AI assistant\",\n  \"stage\": \"MVP\",\n  \"status\": \"FUNDED\",\n  \"fundingGoal\": 1000.00\n}" }
+          }
+        },
+        {
+          "name": "Project feed filtered by status (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK', () => pm.response.to.have.status(200));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/projects?status=PUBLISHED&page=0&size=10" }
+        },
+        {
+          "name": "Project members - founder only (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK, founder present', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.json().content[0].role).to.eql('FOUNDER');",
+            "});"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/projects/{{projectId}}/members" }
+        }
+      ]
+    },
+    {
+      "name": "4. Join requests (transaction: accept)",
+      "item": [
+        {
+          "name": "Create join request (201)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201 Created, PENDING', () => {",
+            "    pm.response.to.have.status(201);",
+            "    pm.expect(pm.response.json().status).to.eql('PENDING');",
+            "});",
+            "pm.collectionVariables.set('joinRequestId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/join-requests",
+            "body": { "mode": "raw", "raw": "{\n  \"projectId\": {{projectId}},\n  \"applicantId\": {{student2Id}},\n  \"desiredRole\": \"DESIGNER\",\n  \"message\": \"I can design the mobile app\"\n}" }
+          }
+        },
+        {
+          "name": "Create duplicate join request (409)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('409 Conflict', () => pm.response.to.have.status(409));"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/join-requests",
+            "body": { "mode": "raw", "raw": "{\n  \"projectId\": {{projectId}},\n  \"applicantId\": {{student2Id}},\n  \"desiredRole\": \"DEVELOPER\"\n}" }
+          }
+        },
+        {
+          "name": "Investor applies (422)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/join-requests",
+            "body": { "mode": "raw", "raw": "{\n  \"projectId\": {{projectId}},\n  \"applicantId\": {{investorId}},\n  \"desiredRole\": \"ANALYST\"\n}" }
+          }
+        },
+        {
+          "name": "List join requests by project (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK with X-Total-Count', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.headers.has('X-Total-Count')).to.be.true;",
+            "});"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/join-requests?projectId={{projectId}}&page=0&size=10" }
+        },
+        {
+          "name": "Accept join request (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK, ACCEPTED', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.json().status).to.eql('ACCEPTED');",
+            "});"
+          ] } }],
+          "request": { "method": "POST", "url": "{{baseUrl}}/api/join-requests/{{joinRequestId}}/accept" }
+        },
+        {
+          "name": "Accept again (409)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('409 Conflict', () => pm.response.to.have.status(409));"
+          ] } }],
+          "request": { "method": "POST", "url": "{{baseUrl}}/api/join-requests/{{joinRequestId}}/accept" }
+        },
+        {
+          "name": "Project members - two members (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK, 2 members', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.json().content.length).to.eql(2);",
+            "});"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/projects/{{projectId}}/members?page=0&size=10" }
+        },
+        {
+          "name": "Update member role and equity (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK', () => pm.response.to.have.status(200));"
+          ] } }],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/members/{{student2Id}}",
+            "body": { "mode": "raw", "raw": "{\n  \"role\": \"DESIGNER\",\n  \"equityShare\": 15.00\n}" }
+          }
+        },
+        {
+          "name": "Remove owner from team (422)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+          ] } }],
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/projects/{{projectId}}/members/{{studentId}}" }
+        }
+      ]
+    },
+    {
+      "name": "5. Investment offers (transaction: accept)",
+      "item": [
+        {
+          "name": "Create offer by investor (201)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201 Created, PENDING', () => {",
+            "    pm.response.to.have.status(201);",
+            "    pm.expect(pm.response.json().status).to.eql('PENDING');",
+            "});",
+            "pm.collectionVariables.set('offerId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/investment-offers",
+            "body": { "mode": "raw", "raw": "{\n  \"projectId\": {{projectId}},\n  \"investorId\": {{investorId}},\n  \"amount\": 400.00,\n  \"equityPercent\": 10.00,\n  \"message\": \"Seed round\"\n}" }
+          }
+        },
+        {
+          "name": "Create offer by student (422)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/investment-offers",
+            "body": { "mode": "raw", "raw": "{\n  \"projectId\": {{projectId}},\n  \"investorId\": {{studentId}},\n  \"amount\": 100.00,\n  \"equityPercent\": 5.00\n}" }
+          }
+        },
+        {
+          "name": "Create offer - validation error (400)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/investment-offers",
+            "body": { "mode": "raw", "raw": "{\n  \"projectId\": {{projectId}},\n  \"investorId\": {{investorId}},\n  \"amount\": 0,\n  \"equityPercent\": 150\n}" }
+          }
+        },
+        {
+          "name": "Create second offer (201)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('offer2Id', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/investment-offers",
+            "body": { "mode": "raw", "raw": "{\n  \"projectId\": {{projectId}},\n  \"investorId\": {{investor2Id}},\n  \"amount\": 600.00,\n  \"equityPercent\": 12.50,\n  \"message\": \"Closing the round\"\n}" }
+          }
+        },
+        {
+          "name": "List offers by project with X-Total-Count (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK, total = 2', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.headers.get('X-Total-Count')).to.eql('2');",
+            "});"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/investment-offers?projectId={{projectId}}&page=0&size=10" }
+        },
+        {
+          "name": "Accept first offer (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK, ACCEPTED', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.json().status).to.eql('ACCEPTED');",
+            "});"
+          ] } }],
+          "request": { "method": "POST", "url": "{{baseUrl}}/api/investment-offers/{{offerId}}/accept" }
+        },
+        {
+          "name": "Project after first accept - raised 400 (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('raisedAmount = 400, still PUBLISHED', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.json().raisedAmount).to.eql(400);",
+            "    pm.expect(pm.response.json().status).to.eql('PUBLISHED');",
+            "});"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/projects/{{projectId}}" }
+        },
+        {
+          "name": "Accept second offer - goal reached (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK', () => pm.response.to.have.status(200));"
+          ] } }],
+          "request": { "method": "POST", "url": "{{baseUrl}}/api/investment-offers/{{offer2Id}}/accept" }
+        },
+        {
+          "name": "Project after second accept - FUNDED (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('raisedAmount = 1000, FUNDED', () => {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.json().raisedAmount).to.eql(1000);",
+            "    pm.expect(pm.response.json().status).to.eql('FUNDED');",
+            "});"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/projects/{{projectId}}" }
+        },
+        {
+          "name": "Withdraw accepted offer (409)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('409 Conflict', () => pm.response.to.have.status(409));"
+          ] } }],
+          "request": { "method": "POST", "url": "{{baseUrl}}/api/investment-offers/{{offerId}}/withdraw" }
+        },
+        {
+          "name": "Offer to FUNDED project (422)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/investment-offers",
+            "body": { "mode": "raw", "raw": "{\n  \"projectId\": {{projectId}},\n  \"investorId\": {{investorId}},\n  \"amount\": 50.00,\n  \"equityPercent\": 1.00\n}" }
+          }
+        },
+        {
+          "name": "List offers by investor (200)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200 OK', () => pm.response.to.have.status(200));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/investment-offers?investorId={{investorId}}" }
+        }
+      ]
+    },
+    {
+      "name": "6. Cleanup and error cases",
+      "item": [
+        {
+          "name": "Delete owner with project (409)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('409 Conflict', () => pm.response.to.have.status(409));"
+          ] } }],
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/users/{{studentId}}" }
+        },
+        {
+          "name": "Remove member from team (204)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+          ] } }],
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/projects/{{projectId}}/members/{{student2Id}}" }
+        },
+        {
+          "name": "Delete project (204)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+          ] } }],
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/projects/{{projectId}}" }
+        },
+        {
+          "name": "Get deleted project (404)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/projects/{{projectId}}" }
+        },
+        {
+          "name": "Invalid id type (400)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/projects/abc" }
+        },
+        {
+          "name": "Unknown endpoint (404)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/unknown" }
+        },
+        {
+          "name": "Delete skill (204)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+          ] } }],
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/skills/{{skillId}}" }
+        },
+        {
+          "name": "Delete users (204)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+          ] } }],
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/users/{{studentId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Swagger UI",
+      "request": { "method": "GET", "url": "{{baseUrl}}/swagger-ui.html" }
+    },
+    {
+      "name": "OpenAPI JSON",
+      "request": { "method": "GET", "url": "{{baseUrl}}/v3/api-docs" }
+    }
+  ]
+}
