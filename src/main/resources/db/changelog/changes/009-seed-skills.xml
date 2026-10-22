@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="009-seed-skills" author="unicofound">
+        <insert tableName="skills">
+            <column name="name" value="Java"/>
+            <column name="category" value="DEVELOPMENT"/>
+        </insert>
+        <insert tableName="skills">
+            <column name="name" value="Spring Boot"/>
+            <column name="category" value="DEVELOPMENT"/>
+        </insert>
+        <insert tableName="skills">
+            <column name="name" value="React"/>
+            <column name="category" value="DEVELOPMENT"/>
+        </insert>
+        <insert tableName="skills">
+            <column name="name" value="UI/UX Design"/>
+            <column name="category" value="DESIGN"/>
+        </insert>
+        <insert tableName="skills">
+            <column name="name" value="Business Analysis"/>
+            <column name="category" value="BUSINESS"/>
+        </insert>
+        <insert tableName="skills">
+            <column name="name" value="Product Management"/>
+            <column name="category" value="BUSINESS"/>
+        </insert>
+        <insert tableName="skills">
+            <column name="name" value="Digital Marketing"/>
+            <column name="category" value="MARKETING"/>
+        </insert>
+        <insert tableName="skills">
+            <column name="name" value="Data Science"/>
+            <column name="category" value="DATA"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
