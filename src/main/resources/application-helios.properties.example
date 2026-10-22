@@ -1,0 +1,6 @@
+spring.datasource.url=jdbc:postgresql://localhost:5432/studs?sslmode=disable&connectTimeout=60
+spring.datasource.username=s3XXXXX
+spring.datasource.password=CHANGE_ME
+spring.jpa.properties.hibernate.default_schema=s3XXXXX
+spring.liquibase.default-schema=s3XXXXX
+spring.liquibase.liquibase-schema=s3XXXXX
