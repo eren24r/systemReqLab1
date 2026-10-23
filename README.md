@@ -18,8 +18,8 @@ docker compose up --build
 |---------------|-----------------------------------------------|--------------------------|
 | `SERVER_PORT` | `8080`                                        | порт приложения          |
 | `DB_URL`      | `jdbc:postgresql://localhost:5432/unicofound` | JDBC URL                 |
-| `DB_USERNAME` | `unicofound`                                  | пользователь БД          |
-| `DB_PASSWORD` | `unicofound`                                  | пароль БД                |
+| `DB_USERNAME` | `*`                                  | пользователь БД          |
+| `DB_PASSWORD` | `*`                                  | пароль БД                |
 | `DB_SCHEMA`   | `public`                                      | схема для таблиц и Liquibase |
 
 Запуск против учебной БД (helios) через ssh-туннель `ssh s373751@se.ifmo.ru -L 5432:bd:5432`:
